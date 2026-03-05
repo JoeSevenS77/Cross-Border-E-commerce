@@ -5,7 +5,7 @@ Reliable, header-aware, language-flexible stock updating for Excel
 ![Excel](https://img.shields.io/badge/Excel-Automation-217346?style=for-the-badge\&logo=microsoft-excel\&logoColor=white)
 ![VBA](https://img.shields.io/badge/Language-VBA-yellow?style=for-the-badge)
 ![Inventory](https://img.shields.io/badge/Feature-Inventory%20Sync-blue?style=for-the-badge)
-![SKU](https://img.shields.io/badge/SKU-Matching-orange?style=for-the-badge)
+![SKU](https://img.shields.io/badge/Match-SKU%20%2B%20Warehouse-orange?style=for-the-badge)
 ![Data](https://img.shields.io/badge/Source-English%20%2F%20Chinese-success?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-Stable-brightgreen?style=for-the-badge)
 
@@ -16,7 +16,7 @@ An advanced VBA macro that automatically updates your **Inventory List** by sync
 This script supports:
 
 * Header detection in **both English & Chinese**
-* SKU-based matching
+* **Composite matching: SKU + Warehouse** (supports the same SKU in different warehouses)
 * Auto-cleaning old values
 * Protection-aware worksheet handling
 * Fast performance via dictionary lookups
@@ -41,15 +41,31 @@ The file is opened safely in **read-only mode**.
 
 ### 2. Detects headers automatically (fuzzy matching)
 
-Understands both English and Chinese header names:
+Understands both English and Chinese header names.
+
+#### Source workbook (English / Chinese)
 
 | Field           | English Header                                  | Chinese Header |
 | --------------- | ----------------------------------------------- | -------------- |
 | SKU             | SKU Name                                        | SKU编号          |
+| Warehouse       | Warehouse                                       | 仓库             |
+| Shelf           | Shelf                                           | 货架位            |
 | Available       | Available for whole warehouse / Available Stock | 整仓可用           |
 | On the Way      | On the Way                                      | 在途中            |
 | Order Allocated | Order Allocated                                 | 订单已锁           |
 | Daily Sales     | Forecasted Daily Sales                          | 预测日销量          |
+
+#### Inventory sheets (target workbook)
+
+| Field           | Expected Header |
+| --------------- | --------------- |
+| SKU             | SKU             |
+| Warehouse       | Warehouse       |
+| Shelf           | Shelf           |
+| Available       | Available Stock |
+| On the Way      | On the way      |
+| Order Allocated | Order Allocated |
+| Daily Sales     | Daily Sales     |
 
 The script normalizes headers and ignores spaces, punctuation, line breaks, and capitalization.
 
@@ -57,8 +73,13 @@ The script normalizes headers and ignores spaces, punctuation, line breaks, and 
 
 ### 3. Loads the source data into dictionaries
 
-Data is cached by SKU for fast lookup:
+Data is cached for fast lookup using a composite key:
 
+**Key = `SKU || Warehouse`** (case-insensitive)
+
+Stored fields:
+
+* Shelf
 * Available
 * On the way
 * Order allocated
@@ -70,12 +91,12 @@ This guarantees high performance even with large datasets.
 
 ### 4. Updates multiple inventory sheets
 
-Each run automatically updates **three** of the following sheets (if present):
+Each run automatically updates the following sheets (if present):
 
 * `采菁`
 * `萌睫`
 * `Flortte`
-*  `夹子`
+* `夹子`
 
 No active-sheet dependency exists.
 
@@ -85,12 +106,13 @@ No active-sheet dependency exists.
 
 Before inserting new data, the script clears:
 
+* Shelf
 * Available Stock
 * On the Way
 * Order Allocated
 * Daily Sales
 
-Then refills them strictly by SKU matching (case-insensitive).
+Then it refills them strictly by **(SKU + Warehouse)** matching (case-insensitive).
 
 ---
 
@@ -140,9 +162,9 @@ The most recently modified file is chosen automatically.
 
 ## 🚀 How to Use
 
-1. Open **Inventory List - 副本.xlsm**
+1. Open your inventory macro workbook (e.g. `Inventory List.xlsm`)
 2. Click the **Update** button next to the SKU header (or run `UpdateInventoryNEW` manually)
-3. Both `采菁` and `萌睫` sheets are updated automatically
+3. Target sheets are updated automatically
 4. No confirmation popup appears unless something goes wrong
 
 ---
@@ -154,7 +176,8 @@ The most recently modified file is chosen automatically.
 * Mixed-language environments
 * Protected sheets
 * Missing or reordered columns
-* Case differences in SKUs
+* Case differences / extra spaces in SKU and Warehouse values
+* Same SKU appearing in different warehouses
 * Large datasets
 
 ---
